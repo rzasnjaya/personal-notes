@@ -20,6 +20,7 @@ model User {
 
   // Relasi one-to-many dengan Note
   notes     Note[]
+  tags      Tag[]
 }
 
 model Note {
@@ -34,4 +35,36 @@ model Note {
   // Foreign key ke User
   userId    Int
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Many-to-many relasi dengan Tag
+  noteTags  NoteTag[]
+}
+
+model Tag {
+  id        Int     @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+
+  // Foreign key ke User
+  userId    Int
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Many-to-many relasi dengan Note
+  noteTags  NoteTag[]
+
+  // Unique constraint: satu user tidak bisa punya tag dengan nama sama
+  @@unique([userId, name])
+}
+
+// Junction table untuk Many-to-Many relasi Note-Tag
+model NoteTag {
+  id        Int     @id @default(autoincrement())
+  noteId    Int
+  tagId     Int
+  createdAt DateTime @default(now())
+
+  note      Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag       Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, tagId])
 }

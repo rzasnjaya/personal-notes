@@ -6,11 +6,19 @@ interface Note {
   updatedAt: string;
   isFavorite: boolean;
   isArchived: boolean;
+  userId: number;
+  noteTags?: Array<{
+    tag: {
+      id: number;
+      name: string;
+    };
+  }>;
 }
 
 interface CreateNoteData {
   title: string;
   content: string;
+  tags?: string[];
 }
 
 interface UpdateNoteData {
@@ -18,11 +26,33 @@ interface UpdateNoteData {
   content?: string;
   isFavorite?: boolean;
   isArchived?: boolean;
+  tags?: string[];
 }
 
-// Fetch all notes
-export async function fetchNotes(): Promise<Note[]> {
-  const response = await fetch('/api/notes');
+interface FetchNotesParams {
+  search?: string;
+  isFavorite?: boolean;
+  isArchived?: boolean;
+}
+
+// Fetch all notes with optional filters
+export async function fetchNotes(params?: FetchNotesParams): Promise<Note[]> {
+  const searchParams = new URLSearchParams();
+  
+  if (params?.search) {
+    searchParams.append('search', params.search);
+  }
+  if (params?.isFavorite) {
+    searchParams.append('isFavorite', 'true');
+  }
+  if (params?.isArchived !== undefined) {
+    searchParams.append('isArchived', params.isArchived ? 'true' : 'false');
+  }
+
+  const query = searchParams.toString();
+  const url = `/api/notes${query ? `?${query}` : ''}`;
+
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error('Failed to fetch notes');
   }
